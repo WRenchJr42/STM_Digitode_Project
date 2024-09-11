@@ -24,7 +24,7 @@
 #include "stdio.h"
 #include "string.h"
 #include "NanoEdgeAI.h"
-#include <knowledge.h>
+#include "knowledge.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -36,6 +36,7 @@
 /* USER CODE BEGIN PD */
 #define DATA_INPUT_USER 256
 #define AXIS_NUMBER 1
+#define CONFIRMATIONS NB
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -54,6 +55,12 @@ UART_HandleTypeDef huart2;
 float mic_x = 0.0;
 float mic_buffer[DATA_INPUT_USER * AXIS_NUMBER] = {0};
 volatile uint32_t buffer_index =0;
+float output_class_buffer[CLASS_NUMBER]; // Buffer of class probabilities
+const char *id2class[CLASS_NUMBER + 1] = { // Buffer for mapping class id to class name
+	"unknown",
+	"dogg",
+	"dragons",
+};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -63,7 +70,7 @@ static void MX_USART2_UART_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_TIM2_Init(void);
 /* USER CODE BEGIN PFP */
-void Log(void);
+void Inference(void);
 void fill_mic_buffer(void);
 int __io_putchar(int);
 /* USER CODE END PFP */
@@ -109,7 +116,16 @@ int main(void)
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
-
+enum neai_state_error_code = neai_classification_init(knowledge);
+	if (error_code != NEAI_OK)
+	{
+		printf("Knowledge Initialization Error");
+		printf("%d", error_code);
+	}
+	else
+	{
+		printf("Knowledge initialization done");
+	}
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
@@ -127,7 +143,7 @@ HAL_TIM_Base_Start(&htim2);
   while (1)
   {
     /* USER CODE END WHILE */
-	  Log();
+	  Inference();
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -356,15 +372,31 @@ void fill_mic_buffer()
 		HAL_Delay(3);
 	}
 }
-void Log()
+void Inference()
 {
+	uint16_t i, id_class_t0, id_class_tn;
 	fill_mic_buffer();
-	for (int i =0 ; i<DATA_INPUT_USER;i++)
+	neai_classification(mic_buffer, output_class_buffer, &id_class_tn);
+	for (i = 0; i<CONFIRMATIONS_NB-1; i++)
 	{
-		printf("%.2f",mic_buffer[AXIS_NUMBER * i]);
-		printf(" ");
+		fill_mic_buffer();
+		neai_classification(mic_buffer, output_class_buffer, &id_class_tn);
+		if (id_class_to != id_class_tn)
+		{
+			break;
+		}
+		if (id_class_t0 == id_class_tn)
+		{
+			printf("Detected Class:");
+			printf(id2class[id_class_t0]);
+			printf("\r\n");
+		}
+		else
+		{
+			printf("?");
+			printf("\r\n");
+		}
 	}
-	printf("\r\n");
 }
 /* USER CODE END 4 */
 
