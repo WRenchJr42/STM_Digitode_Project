@@ -36,7 +36,7 @@
 /* USER CODE BEGIN PD */
 #define DATA_INPUT_USER 256
 #define AXIS_NUMBER 1
-#define CONFIRMATIONS NB
+#define CONFIRMATIONS_NB
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -116,7 +116,7 @@ int main(void)
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
-enum neai_state_error_code = neai_classification_init(knowledge);
+enum neai_state error_code = neai_classification_init(knowledge);
 	if (error_code != NEAI_OK)
 	{
 		printf("Knowledge Initialization Error");
@@ -381,7 +381,7 @@ void Inference()
 	{
 		fill_mic_buffer();
 		neai_classification(mic_buffer, output_class_buffer, &id_class_tn);
-		if (id_class_to != id_class_tn)
+		if (id_class_t0 != id_class_tn)
 		{
 			break;
 		}
